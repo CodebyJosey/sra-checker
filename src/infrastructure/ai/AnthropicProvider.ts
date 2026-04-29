@@ -67,7 +67,7 @@ const EVALUATION_TOOL = {
  * ```
  */
 export class AnthropicProvider implements AIProvider {
-  private static readonly DEFAULT_MODEL = 'claude-sonnet-4-6';
+  private static readonly DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
   private readonly client: Anthropic;
  
   public constructor(

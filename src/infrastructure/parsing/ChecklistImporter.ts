@@ -1,58 +1,72 @@
 import ExcelJS, { type CellValue } from 'exceljs';
 import { ChecklistItem } from '@/domain/checklist/ChecklistItem';
-import type { ChecklistRepository } from '../persistence/ChecklistRepository';
  
 /**
- * @summary Importeert SRA-checks uit een `.xlsm`-bestand naar de database.
+ * @summary Resultaat van het inlezen van één checklist-sheet.
+ */
+export interface ParsedSheet {
+  readonly name: string;
+  readonly items: readonly ChecklistItem[];
+}
+ 
+/**
+ * @summary Resultaat van het inlezen van een hele checklist.
+ */
+export interface ParsedChecklist {
+  readonly sheets: readonly ParsedSheet[];
+  /** Totaal aantal i+d-checks over alle sheets. */
+  readonly totalItems: number;
+}
+ 
+/**
+ * @summary Parser voor SRA-checklist .xlsm-bestanden.
  *
  * @remarks
- * De SRA-checklist is een Excel met per kolom: A=tekst, B=Groot, C=Midden,
- * D=Klein, E=Bron. Cellen B/C/D bevatten markers zoals `a` (altijd), `i+d`
- * (informatie + disclosure), `f` (fiscaal) of `uitz` (uitzondering).
+ * In tegenstelling tot de eerste versie leest deze importer ALLE sheets
+ * en filtert per rij op de marker `i+d` (informatie + disclosure) in
+ * kolom B/C/D (Groot/Midden/Klein). Section-header-rijen ('a', 'f', etc.)
+ * vallen automatisch buiten de filter.
  *
- * Voor de case zijn we **uitsluitend** geïnteresseerd in checks waar
- * minstens één van Groot/Midden/Klein de marker `i+d` heeft. Section-headers
- * zoals "PRESENTATIE" of "ALGEMEEN" hebben marker `a` en vallen daarom
- * automatisch buiten de filter.
- *
- * De class is bewust dom: hij parseert, normaliseert, en delegeert
- * persistence aan een `ChecklistRepository`.
+ * De importer is puur — hij leest en parseert. Persistence gebeurt in
+ * {@link ImportChecklistUseCase}.
  *
  * @example
  * ```ts
- * const importer = new ChecklistImporter(checklistRepository);
- * const n = await importer.importSheet('data/source/SRA-checklist.xlsm',
- *                                       'Grondslagen en uitgangspunten');
- * console.log(`${n} checks geïmporteerd`);
+ * const importer = new ChecklistImporter();
+ * const result = await importer.parse(buffer);
+ * for (const sheet of result.sheets) {
+ *   console.log(`${sheet.name}: ${sheet.items.length} i+d-checks`);
+ * }
  * ```
  */
 export class ChecklistImporter {
   private static readonly HEADER_ROWS = 5;
-  /** Spatie-verwijderde, lowercase representatie van de marker die we zoeken. */
   private static readonly ID_MARKER = 'i+d';
  
-  public constructor(private readonly repository: ChecklistRepository) {}
- 
   /**
-   * Leest één sheet uit het workbook en upsert alle i+d-checks.
+   * Leest een hele workbook en geeft per sheet de gevonden i+d-checks terug.
+   * Sheets zonder enkele i+d-row worden weggelaten.
    *
-   * @param filePath - Absoluut of relatief pad naar het `.xlsm`-bestand.
-   * @param sheetName - Naam van het sheet, bv. `"Grondslagen en uitgangspunten"`.
-   * @returns Het aantal geïmporteerde checks.
-   * @throws Error als het sheet niet bestaat in het workbook.
+   * @param buffer - Ruwe bytes van het .xlsm bestand.
    */
-  public async importSheet(filePath: string, sheetName: string): Promise<number> {
+  public async parse(buffer: Buffer | Uint8Array): Promise<ParsedChecklist> {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(filePath);
+    await workbook.xlsx.load(buffer instanceof Buffer ? buffer.buffer : buffer);
  
-    const sheet = workbook.getWorksheet(sheetName);
-    if (!sheet) {
-      const available = workbook.worksheets.map((w) => w.name).join(', ');
-      throw new Error(
-        `Sheet "${sheetName}" niet gevonden in ${filePath}. Beschikbaar: ${available}`,
-      );
+    const sheets: ParsedSheet[] = [];
+    let total = 0;
+ 
+    for (const ws of workbook.worksheets) {
+      const items = this.parseSheet(ws);
+      if (items.length === 0) continue;
+      sheets.push({ name: ws.name, items });
+      total += items.length;
     }
  
+    return { sheets, totalItems: total };
+  }
+ 
+  private parseSheet(sheet: ExcelJS.Worksheet): ChecklistItem[] {
     const items: ChecklistItem[] = [];
     let ordering = 0;
  
@@ -60,23 +74,20 @@ export class ChecklistImporter {
       if (rowNumber <= ChecklistImporter.HEADER_ROWS) return;
  
       const description = this.cellToString(row.getCell(1).value).trim();
-      if (description.length < 5) return; // ruis-rijen overslaan
+      if (description.length < 5) return;
  
-      const grootRaw = this.cellToString(row.getCell(2).value);
-      const middenRaw = this.cellToString(row.getCell(3).value);
-      const kleinRaw = this.cellToString(row.getCell(4).value);
+      const groot = this.isIdMarker(this.cellToString(row.getCell(2).value));
+      const midden = this.isIdMarker(this.cellToString(row.getCell(3).value));
+      const klein = this.isIdMarker(this.cellToString(row.getCell(4).value));
+ 
+      if (!groot && !midden && !klein) return;
+ 
       const sourceRaw = this.cellToString(row.getCell(5).value).trim();
  
-      const groot = this.isIdMarker(grootRaw);
-      const midden = this.isIdMarker(middenRaw);
-      const klein = this.isIdMarker(kleinRaw);
- 
-      if (!groot && !midden && !klein) return; // geen i+d-row, overslaan
- 
-      ordering += 10; // stap 10: laat ruimte voor latere inserts
+      ordering += 10;
       items.push(
         ChecklistItem.create({
-          sheet: sheetName,
+          sheet: sheet.name,
           ordering,
           description,
           source: sourceRaw.length > 0 ? sourceRaw : null,
@@ -85,45 +96,25 @@ export class ChecklistImporter {
       );
     });
  
-    return this.repository.upsertMany(items);
+    return items;
   }
  
-  /**
-   * Markeert een cel-waarde als de SRA-marker `i+d` (case-insensitief, spaties genegeerd).
-   *
-   * @param raw - Onbewerkte tekst uit de cel.
-   */
   private isIdMarker(raw: string): boolean {
     return raw.replace(/\s/g, '').toLowerCase() === ChecklistImporter.ID_MARKER;
   }
  
-  /**
-   * Normaliseert een ExcelJS cell-value naar een platte string.
-   *
-   * @remarks
-   * ExcelJS retourneert mogelijk: `null`, `undefined`, primitief, `Date`,
-   * een rich-text-object met `richText`-array, of een formula-object met
-   * een `result`-veld. We pakken alle smaken af.
-   *
-   * @param value - De ruwe waarde uit `cell.value`.
-   * @returns De best mogelijke tekst-representatie. Lege string bij null/undefined.
-   */
   private cellToString(value: CellValue): string {
     if (value === null || value === undefined) return '';
     if (typeof value === 'string') return value;
     if (typeof value === 'number' || typeof value === 'boolean') return String(value);
     if (value instanceof Date) return value.toISOString();
- 
     if (typeof value === 'object') {
-      // Rich text
       if ('richText' in value && Array.isArray(value.richText)) {
         return value.richText.map((p) => p.text).join('');
       }
-      // Formula with cached result
       if ('result' in value) {
         return this.cellToString(value.result as CellValue);
       }
-      // Hyperlink object: { text, hyperlink }
       if ('text' in value) {
         return this.cellToString(value.text as CellValue);
       }
@@ -131,4 +122,3 @@ export class ChecklistImporter {
     return '';
   }
 }
- 

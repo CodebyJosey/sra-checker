@@ -2,6 +2,8 @@
 // sra-checker — Prisma schema
 // ---------------------------------------------------------------------
 // SQLite-based store. Auth-modellen volgen het BetterAuth core schema.
+// Gebruikers uploaden hun eigen SRA-checklist + jaarrekening; alle
+// data is per-user gescoped.
 // =====================================================================
  
 generator client {
@@ -24,9 +26,10 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
  
-  sessions  Session[]
-  accounts  Account[]
-  documents Document[]
+  sessions   Session[]
+  accounts   Account[]
+  documents  Document[]
+  checklists Checklist[]
 }
  
 model Session {
@@ -75,22 +78,42 @@ model Verification {
  
 // ------------------------ Domain — checklist --------------------------
  
-/// Eén controlepunt uit de SRA-checklist.
-/// Wordt geseed vanuit `data/source/SRA-checklist.xlsm` (zie Stap 5).
+/// Een door de gebruiker geüploade SRA-checklist (.xlsm).
+/// Bevat metadata over welke sheets erin zitten en hoeveel i+d-checks
+/// per sheet, zodat de UI een rijke selector kan tonen.
+model Checklist {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String   // bv. "SRA-checklist 2024"
+  filename    String
+  storagePath String
+  /// JSON-array: [{ "name": "Grondslagen...", "idCount": 39 }, ...]
+  sheets      String
+  createdAt   DateTime @default(now())
+ 
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ChecklistItem[]
+ 
+  @@index([userId])
+}
+ 
+/// Eén controlepunt uit één sheet van een Checklist.
 model ChecklistItem {
   id          String   @id @default(cuid())
-  sheet       String          // bv. "Grondslagen en uitgangspunten"
-  ordering    Int             // volgorde binnen de sheet
+  checklistId String
+  sheet       String
+  ordering    Int
   description String
-  source      String?         // wetreferentie zoals "BW 2:384,5"
+  source      String?
  
   appliesGroot  Boolean @default(false)
   appliesMidden Boolean @default(false)
   appliesKlein  Boolean @default(false)
  
-  results CheckResult[]
+  checklist Checklist     @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  results   CheckResult[]
  
-  @@index([sheet, ordering])
+  @@index([checklistId, sheet, ordering])
 }
  
 // ------------------------ Domain — document --------------------------
@@ -111,28 +134,23 @@ model Document {
   @@index([userId])
 }
  
-/// Eén stuk tekst uit een Document — basisbouwsteen voor RAG.
-/// `embedding` is een JSON-string van een float[]. SQLite kan geen
-/// native vectors, dus we doen cosine similarity in-memory in JS.
 model DocumentChunk {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   documentId String
   page       Int
   content    String
-  embedding  String?   // JSON-string: float[]
+  embedding  String?
  
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
  
   @@index([documentId])
 }
  
-/// Het resultaat van één AI-evaluatie van een ChecklistItem tegen een Document.
 model CheckResult {
   id              String   @id @default(cuid())
   documentId      String
   checklistItemId String
  
-  /// "PASS" | "FAIL" | "NOT_APPLICABLE" | "UNCERTAIN"
   status        String
   pageReference Int?
   citation      String?

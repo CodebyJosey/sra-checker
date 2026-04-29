@@ -1,14 +1,14 @@
 /**
- * @summary `POST /api/documents/[id]/run` — start een evaluatie van alle i+d-checks.
+ * @summary `POST /api/documents/[id]/run` — start een evaluatie en streamt voortgang.
  *
  * @remarks
- * - Auth + ownership-check zit ingebakken (defense in depth bovenop middleware).
- * - Synchroon: wacht totdat alle checks klaar zijn voordat we 200 returnen.
- *   Voor 39 checks bij batches van 5 is dat ~30-60 seconden.
- * - Geen rate-limit per gebruiker (zou je in productie wel willen).
+ * Antwoord is **NDJSON** (newline-delimited JSON). Elke regel is een event:
+ * - `{ "succeeded": n, "failed": m, "total": t }` — voortgang
+ * - `{ "done": true, "succeeded": n, "failed": m, "total": t }` — klaar
+ * - `{ "error": "..." }` — fout
  */
-import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { z } from 'zod';
 import { auth } from '@/infrastructure/auth/auth';
 import { prisma } from '@/infrastructure/persistence/prisma';
 import { DocumentRepository } from '@/infrastructure/persistence/DocumentRepository';
@@ -18,40 +18,85 @@ import { EmbeddingService } from '@/infrastructure/ai/EmbeddingService';
 import { AnthropicProvider } from '@/infrastructure/ai/AnthropicProvider';
 import { DocumentRetriever } from '@/infrastructure/rag/DocumentRetriever';
 import { RunChecksUseCase } from '@/application/RunChecksUseCase';
+
+export const dyanmic = 'force-dynamic';
  
-// Een enkele run kan minuten duren. Op Vercel zou dit naar een queue moeten;
-// lokaal werkt het out-of-the-box.
-export const maxDuration = 300; // seconden
+export const maxDuration = 300;
+ 
+const BodySchema = z.object({
+  checklistId: z.string().min(1),
+  sheet: z.string().min(1),
+  type: z.enum(['groot', 'midden', 'klein']).default('midden'),
+});
  
 interface RouteContext {
   readonly params: Promise<{ id: string }>;
 }
  
-export async function POST(_req: Request, ctx: RouteContext): Promise<NextResponse> {
+export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+  if (!session) return jsonError(401, 'Niet ingelogd');
  
   const { id } = await ctx.params;
-  const repo = new DocumentRepository(prisma);
-  const document = await repo.findOwned(id, session.user.id);
-  if (!document) {
-    // Bewust 404 i.p.v. 403 — geeft minder informatie weg over wel/niet bestaande IDs.
-    return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 });
-  }
+ 
+  const documentRepo = new DocumentRepository(prisma);
+  const document = await documentRepo.findOwned(id, session.user.id);
+  if (!document) return jsonError(404, 'Niet gevonden');
+ 
+  const body = (await req.json().catch(() => null)) as unknown;
+  const parsed = BodySchema.safeParse(body);
+  if (!parsed.success) return jsonError(400, 'Ongeldige body');
+ 
+  const checklistRepo = new ChecklistRepository(prisma);
+  const checklist = await checklistRepo.findOwned(parsed.data.checklistId, session.user.id);
+  if (!checklist) return jsonError(404, 'Checklist niet gevonden');
  
   const useCase = new RunChecksUseCase(
     new DocumentRetriever(prisma, new EmbeddingService()),
     new AnthropicProvider(),
-    new ChecklistRepository(prisma),
+    checklistRepo,
     new CheckResultRepository(prisma),
   );
  
-  try {
-    const summary = await useCase.execute(document.id, 'midden');
-    return NextResponse.json(summary);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Onbekende fout';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      const send = (event: object): void => {
+        controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));
+      };
+ 
+      try {
+        const summary = await useCase.execute(
+          document.id,
+          parsed.data.checklistId,
+          parsed.data.sheet,
+          parsed.data.type,
+          (progress) => send(progress),
+        );
+        send({ done: true, ...summary });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Onbekende fout';
+        send({ error: message });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+ 
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/x-ndjson; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
+}
+ 
+function jsonError(status: number, message: string): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
  
