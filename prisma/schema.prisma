@@ -1,0 +1,149 @@
+// =====================================================================
+// sra-checker — Prisma schema
+// ---------------------------------------------------------------------
+// SQLite-based store. Auth-modellen volgen het BetterAuth core schema.
+// =====================================================================
+ 
+generator client {
+  provider = "prisma-client-js"
+}
+ 
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+ 
+// ----------------------------- Auth -----------------------------------
+ 
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+ 
+  sessions  Session[]
+  accounts  Account[]
+  documents Document[]
+}
+ 
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@index([userId])
+}
+ 
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  password              String?
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@index([userId])
+}
+ 
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+ 
+// ------------------------ Domain — checklist --------------------------
+ 
+/// Eén controlepunt uit de SRA-checklist.
+/// Wordt geseed vanuit `data/source/SRA-checklist.xlsm` (zie Stap 5).
+model ChecklistItem {
+  id          String   @id @default(cuid())
+  sheet       String          // bv. "Grondslagen en uitgangspunten"
+  ordering    Int             // volgorde binnen de sheet
+  description String
+  source      String?         // wetreferentie zoals "BW 2:384,5"
+ 
+  appliesGroot  Boolean @default(false)
+  appliesMidden Boolean @default(false)
+  appliesKlein  Boolean @default(false)
+ 
+  results CheckResult[]
+ 
+  @@index([sheet, ordering])
+}
+ 
+// ------------------------ Domain — document --------------------------
+ 
+/// Een door de gebruiker geüploade jaarrekening (PDF).
+model Document {
+  id          String   @id @default(cuid())
+  userId      String
+  filename    String
+  storagePath String
+  pageCount   Int
+  createdAt   DateTime @default(now())
+ 
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunks  DocumentChunk[]
+  results CheckResult[]
+ 
+  @@index([userId])
+}
+ 
+/// Eén stuk tekst uit een Document — basisbouwsteen voor RAG.
+/// `embedding` is een JSON-string van een float[]. SQLite kan geen
+/// native vectors, dus we doen cosine similarity in-memory in JS.
+model DocumentChunk {
+  id         String @id @default(cuid())
+  documentId String
+  page       Int
+  content    String
+  embedding  String?   // JSON-string: float[]
+ 
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+ 
+  @@index([documentId])
+}
+ 
+/// Het resultaat van één AI-evaluatie van een ChecklistItem tegen een Document.
+model CheckResult {
+  id              String   @id @default(cuid())
+  documentId      String
+  checklistItemId String
+ 
+  /// "PASS" | "FAIL" | "NOT_APPLICABLE" | "UNCERTAIN"
+  status        String
+  pageReference Int?
+  citation      String?
+  reasoning     String
+  modelUsed     String
+  createdAt     DateTime @default(now())
+ 
+  document      Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  checklistItem ChecklistItem @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+ 
+  @@unique([documentId, checklistItemId])
+  @@index([documentId])
+}
+ 
