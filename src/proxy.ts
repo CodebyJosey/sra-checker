@@ -16,7 +16,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 const COOKIE_NAME = 'sra-checker.session_token';
 const PUBLIC_PATHS = ['/login', '/register', '/'];
  
-export function middleware(req: NextRequest): NextResponse {
+export function proxy(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
  
   if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/api/auth')) {

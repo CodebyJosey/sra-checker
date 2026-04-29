@@ -16,6 +16,8 @@ import { prisma } from '@/infrastructure/persistence/prisma';
 import { DocumentRepository } from '@/infrastructure/persistence/DocumentRepository';
 import { PdfExtractor } from '@/infrastructure/parsing/PdfExtractor';
 import { IngestDocumentUseCase } from '@/application/IngestDocumentUseCase';
+import { EmbeddingService } from '@/infrastructure/ai/EmbeddingService';
+import { Chunker } from '@/infrastructure/rag/Chunker';
  
 const MAX_BYTES = 20 * 1024 * 1024;
 const ALLOWED_MIME = 'application/pdf';
@@ -48,9 +50,11 @@ export async function POST(req: Request): Promise<NextResponse> {
   const bytes = Buffer.from(await file.arrayBuffer());
  
   const useCase = new IngestDocumentUseCase(
-    new PdfExtractor(),
-    new DocumentRepository(prisma),
-  );
+  new PdfExtractor(),
+  new DocumentRepository(prisma),
+  new Chunker(),
+  new EmbeddingService(),
+);
  
   try {
     const result = await useCase.execute({

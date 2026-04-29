@@ -14,9 +14,11 @@
     "db:seed": "dotenv -e .env.local -- npx tsx prisma/seed.ts",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:studio": "dotenv -e .env.local -- prisma studio",
+    "db:retrieval-test": "dotenv -e .env.local -- npx tsx scripts/test-retrieval.ts",
     "db:reset": "dotenv -e .env.local -- prisma migrate reset"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.91.1",
     "@prisma/client": "^6.19.3",
     "better-auth": "^1.6.9",
     "exceljs": "^4.4.0",

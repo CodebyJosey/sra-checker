@@ -36,30 +36,28 @@ public async updateStoragePath(id: string, storagePath: string): Promise<void> {
     where: { id },
     data: { storagePath },
   });
-}
- 
-  /**
-   * Slaat de geëxtraheerde tekst per pagina op als chunks zonder embedding.
-   * Stap 7 vult `embedding` later aan.
-   *
-   * @param documentId - Het bovenliggende document.
-   * @param pages - Per-pagina tekst.
-   */
-  public async saveRawPages(
+    }
+    
+    /**
+     * Slaat chunks met pre-berekende embeddings op.
+     *
+     * @param documentId - Het bovenliggende document.
+     * @param chunks - Chunks met content + 1024-dim embedding.
+     */
+    public async saveChunks(
     documentId: string,
-    pages: readonly { page: number; text: string }[],
-  ): Promise<void> {
-    const data = pages
-      .filter((p) => p.text.trim().length > 0)
-      .map((p) => ({
+    chunks: readonly { page: number; content: string; embedding: number[] }[],
+    ): Promise<void> {
+    if (chunks.length === 0) return;
+    await this.prisma.documentChunk.createMany({
+        data: chunks.map((c) => ({
         documentId,
-        page: p.page,
-        content: p.text,
-        embedding: '',
-      }));
-    if (data.length === 0) return;
-    await this.prisma.documentChunk.createMany({ data });
-  }
+        page: c.page,
+        content: c.content,
+        embedding: JSON.stringify(c.embedding),
+        })),
+    });
+    }
   
  
   /**
