@@ -28,8 +28,8 @@ export interface RunChecksOutput {
  * voortgangsbalk in plaats van schokkerige sprongen.
  */
 export class RunChecksUseCase {
-  private static readonly CONCURRENCY = 5;
-  private static readonly TOP_K = 5;
+  private static readonly CONCURRENCY = 2;
+  private static readonly TOP_K = 8;
  
   public constructor(
     private readonly retriever: DocumentRetriever,
