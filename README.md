@@ -131,9 +131,13 @@ Zie [`docs/adr/`](./docs/adr/):
 | --------------------------- | ------------------------------------------------------- |
 | `npm run dev`               | Lokaal draaien (Turbopack).                             |
 | `npm run build`             | Productie-build.                                        |
+| `npm run start`             | Start de productie-server (vereist eerst npm run build).|
 | `npm run typecheck`         | `tsc --noEmit`.                                         |
-| `npm run lint`              | Next ESLint + tsdoc syntax.                             |
 | `npm run format`            | Prettier write.                                         |
+| `npm run format:check`      | Checkt of bestanden correct geformatteerd zijn (CI).    |
+| `npm run test`              | Draait alle tests één keer met Vitest.                  |
+| `npm run test:watch`        | Draait alle tests in watch mode.                        | 
+| `npm run db:generate`       | Genereert de Prisma client op basis van je schema.      |              
 | `npm run db:migrate`        | Prisma migrations.                                      |
 | `npm run db:reset`          | Drop + recreate DB.                                     |
 | `npm run db:studio`         | Prisma Studio.                                          |
