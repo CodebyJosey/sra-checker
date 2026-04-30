@@ -1,10 +1,10 @@
 'use client';
- 
+
 import { Suspense, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from '@/infrastructure/auth/auth-client';
- 
+
 /**
  * @summary Login-pagina.
  *
@@ -20,7 +20,7 @@ export default function LoginPage() {
     </Suspense>
   );
 }
- 
+
 function LoginFallback() {
   return (
     <>
@@ -29,17 +29,17 @@ function LoginFallback() {
     </>
   );
 }
- 
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') ?? '/dashboard';
- 
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
- 
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setError(null);
@@ -53,7 +53,7 @@ function LoginForm() {
     router.push(next);
     router.refresh();
   }
- 
+
   return (
     <>
       <h1 className="text-xl font-semibold tracking-tight">Inloggen</h1>
@@ -63,7 +63,7 @@ function LoginForm() {
           Registreren
         </Link>
       </p>
- 
+
       <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
         <div>
           <label htmlFor="email" className="block text-sm font-medium">
@@ -79,7 +79,7 @@ function LoginForm() {
             className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
           />
         </div>
- 
+
         <div>
           <label htmlFor="password" className="block text-sm font-medium">
             Wachtwoord
@@ -95,13 +95,13 @@ function LoginForm() {
             className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
           />
         </div>
- 
+
         {error && (
           <p role="alert" className="text-sm text-[var(--danger)]">
             {error}
           </p>
         )}
- 
+
         <button
           type="submit"
           disabled={pending}
@@ -113,4 +113,3 @@ function LoginForm() {
     </>
   );
 }
- 
