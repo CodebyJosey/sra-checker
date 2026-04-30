@@ -265,7 +265,7 @@ function UploadStep({
           type="button"
           onClick={onNext}
           disabled={!canContinue}
-          className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-foreground)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-primary group"
         >
           Volgende →
         </button>
@@ -407,7 +407,7 @@ function ProcessStep(props: {
           type="button"
           onClick={onStart}
           disabled={!canRun}
-          className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-foreground)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-primary group"
         >
           Start analyse
         </button>
@@ -430,10 +430,10 @@ function RunningView({ progress }: { progress: { done: number; total: number } |
 
       <div className="mt-8">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-medium tabular-nums">
+          <span className="font-medium tabular-nums text-[var(--brand)]">
             {done} / {total > 0 ? total : '…'}
           </span>
-          <span className="text-[var(--muted)] tabular-nums">{pct}%</span>
+          <span className="tabular-nums text-[var(--muted)]">{pct}%</span>
         </div>
         <div
           className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--surface-soft)]"
@@ -443,7 +443,7 @@ function RunningView({ progress }: { progress: { done: number; total: number } |
           aria-valuenow={pct}
         >
           <div
-            className="h-full bg-[var(--foreground)] transition-all duration-300 ease-out"
+            className="h-full bg-[var(--brand)] transition-all duration-300 ease-out"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -477,7 +477,7 @@ function ResultsStep({
       <div className="mt-6 flex flex-wrap gap-3">
         <a
           href={`/documents/${summary.documentId}`}
-          className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-foreground)]"
+          className="btn-primary group"
         >
           Bekijk volledige resultaten →
         </a>

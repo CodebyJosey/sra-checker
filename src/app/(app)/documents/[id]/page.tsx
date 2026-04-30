@@ -5,7 +5,6 @@ import { auth } from '@/infrastructure/auth/auth';
 import { prisma } from '@/infrastructure/persistence/prisma';
 import { DocumentRepository } from '@/infrastructure/persistence/DocumentRepository';
 import { CheckResultRepository } from '@/infrastructure/persistence/CheckResultRepository';
-import RunChecksButton from '@/components/run-checks-button';
 import ResultsList, { type ResultRow } from '@/components/results-list';
 import type { CheckStatus } from '@/domain/checklist/CheckResult';
 
@@ -56,15 +55,14 @@ export default async function DocumentDetailPage({ params }: PageProps) {
         ← Terug naar dashboard
       </Link>
 
-      <header className="mt-3 flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="truncate text-2xl font-semibold tracking-tight">{document.filename}</h1>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            {document.pageCount} pagina&apos;s · geüpload{' '}
-            {new Date(document.createdAt).toLocaleString('nl-NL')}
-          </p>
-        </div>
-        <RunChecksButton documentId={document.id} />
+      <header className="mt-3">
+        <h1 className="truncate text-2xl font-semibold tracking-tight">
+          {document.filename}
+        </h1>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          {document.pageCount} pagina&apos;s · geüpload{' '}
+          {new Date(document.createdAt).toLocaleString('nl-NL')}
+        </p>
       </header>
 
       {total === 0 ? (

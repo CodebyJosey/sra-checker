@@ -43,7 +43,7 @@ export default function RunChecksButton({ documentId }: Props) {
           type="button"
           onClick={handleClick}
           disabled={pending}
-          className="rounded-md bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-[var(--accent-foreground)] disabled:opacity-50"
+          className="btn-primary group"
         >
           {pending ? 'Bezig…' : 'Evalueer'}
         </button>

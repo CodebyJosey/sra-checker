@@ -53,12 +53,12 @@ export default function ResultsList({ results }: { results: ResultRow[] }) {
               className={
                 'rounded-full border px-3 py-1 text-xs font-medium transition ' +
                 (isActive
-                  ? 'border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]'
+                  ? 'border-[var(--brand)] bg-[var(--brand)] text-[var(--accent-foreground)] shadow-[var(--shadow-sm)]'
                   : 'border-[var(--border)] hover:bg-[var(--surface-soft)]')
               }
             >
               {f.label}{' '}
-              <span className={isActive ? 'opacity-70' : 'text-[var(--muted)]'}>{count}</span>
+              <span className={isActive ? 'opacity-80' : 'text-[var(--muted)]'}>{count}</span>
             </button>
           );
         })}

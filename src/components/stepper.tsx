@@ -30,7 +30,7 @@ export default function Stepper({ steps, onStepClick }: Props) {
               className={
                 'rounded-md px-3 py-1.5 text-sm transition ' +
                 (step.state === 'active'
-                  ? 'bg-[var(--surface-soft)] font-medium text-[var(--foreground)]'
+                  ? 'bg-[var(--brand-soft)] font-semibold text-[var(--brand)]'
                   : step.state === 'done'
                     ? 'text-[var(--muted)] hover:text-[var(--foreground)]'
                     : 'cursor-not-allowed text-[var(--muted)] opacity-60')
