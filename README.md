@@ -154,5 +154,5 @@ Zie [`docs/adr/`](./docs/adr/):
 
 ## Credits
 
-- Case door Mees Konijnendijk (Bonsai Software).
+- Case door Mees Konijnendijk & Yeslin Beljaars (cc: Thom van der Velden) van Bonsai Software.
 - SRA-checklist © SRA.
