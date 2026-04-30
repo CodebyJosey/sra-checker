@@ -11,7 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </Link>
       </header>
       <main className="mx-auto flex max-w-md flex-col px-6 pt-16 pb-12">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-[0_2px_8px_rgba(28,27,25,0.04)]">
           {children}
         </div>
       </main>

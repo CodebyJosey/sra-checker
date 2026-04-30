@@ -49,7 +49,7 @@ export default function RegisterPage() {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
+            className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
           />
         </div>
  
@@ -64,7 +64,7 @@ export default function RegisterPage() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
+            className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
           />
         </div>
  
@@ -80,7 +80,7 @@ export default function RegisterPage() {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
+            className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
           />
           <p className="mt-1 text-xs text-[var(--muted)]">Minimaal 10 tekens.</p>
         </div>

@@ -18,6 +18,7 @@ import { PdfExtractor } from '@/infrastructure/parsing/PdfExtractor';
 import { IngestDocumentUseCase } from '@/application/IngestDocumentUseCase';
 import { EmbeddingService } from '@/infrastructure/ai/EmbeddingService';
 import { Chunker } from '@/infrastructure/rag/Chunker';
+import { uploadLimiter } from '@/lib/rate-limiter';
  
 const MAX_BYTES = 20 * 1024 * 1024;
 const ALLOWED_MIME = 'application/pdf';
@@ -25,6 +26,11 @@ const ALLOWED_MIME = 'application/pdf';
 export async function POST(req: Request): Promise<NextResponse> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+
+  const decision = uploadLimiter.check(`upload:${session.user.id}`);
+  if (!decision.allowed) {
+    return NextResponse.json({ error: 'Te veel uploads, probeer later' }, { status: 429 });
+  }
  
   let formData: FormData;
   try {

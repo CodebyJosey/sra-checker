@@ -18,6 +18,7 @@ import { EmbeddingService } from '@/infrastructure/ai/EmbeddingService';
 import { AnthropicProvider } from '@/infrastructure/ai/AnthropicProvider';
 import { DocumentRetriever } from '@/infrastructure/rag/DocumentRetriever';
 import { RunChecksUseCase } from '@/application/RunChecksUseCase';
+import { runLimiter } from '@/lib/rate-limiter';
 
 export const dyanmic = 'force-dynamic';
  
@@ -36,6 +37,21 @@ interface RouteContext {
 export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return jsonError(401, 'Niet ingelogd');
+
+  const decision = runLimiter.check(`run:${session.user.id}`);
+  if (!decision.allowed) {
+    const seconds = Math.ceil((decision.resetAt - Date.now()) / 1000);
+    return new Response(
+      JSON.stringify({ error: `Te veel evaluaties. Probeer over ${seconds}s opnieuw.` }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': String(seconds),
+        },
+      },
+    );
+  }
  
   const { id } = await ctx.params;
  

@@ -78,7 +78,7 @@ export default function FileDropZone({
             ? 'border-[var(--border)] bg-[var(--surface-soft)] opacity-70'
             : dragOver
               ? 'border-[var(--foreground)] bg-[var(--surface-soft)] scale-[1.01]'
-              : 'border-[var(--border)] bg-[var(--surface-soft)] hover:border-[var(--foreground)] hover:bg-white')
+              : 'border-[var(--border)] bg-[var(--surface-soft)] hover:border-[var(--foreground)] hover:bg-[var(--surface)]')
         }
       >
         <input
@@ -90,7 +90,7 @@ export default function FileDropZone({
           className="sr-only"
         />
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[var(--muted)] ring-1 ring-[var(--border)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--muted)] ring-1 ring-[var(--border)]">
             {icon ?? <UploadIcon />}
           </div>
           <p className="text-sm font-medium">{pending ? 'Bezig met uploaden…' : label}</p>
@@ -111,7 +111,7 @@ export default function FileDropZone({
           {existing.map((item) => (
             <li
               key={item.id}
-              className="flex items-center justify-between gap-2 rounded-md border border-[var(--border)] bg-white px-3 py-2 text-xs"
+              className="flex items-center justify-between gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs"
             >
               <span className="flex items-center gap-2 truncate font-medium">
                 <CheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-500" />

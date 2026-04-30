@@ -1,15 +1,49 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --muted: #6b7280;
-  --border: #e5e7eb;
+  /* Backgrounds — warm off-white als basis, wit voor verheven cards */
+  --background: #f7f6f3;
+  /* warme off-white pagina-achtergrond */
   --surface: #ffffff;
-  --surface-soft: #fafafa;
-  --accent: #0a0a0a;
+  /* wit voor cards / verheven oppervlakken */
+  --surface-soft: #efede8;
+  /* subtiele warme tint voor info-blokken */
+  --surface-sunk: #ecebe6;
+  /* nog iets dieper voor inputs/disabled */
+
+  /* Text */
+  --foreground: #1c1b19;
+  /* warm near-black i.p.v. puur zwart */
+  --muted: #76726b;
+  /* warm muted */
+  --muted-2: #a09c93;
+  /* nog dimmer voor subtiele meta-tekst */
+
+  /* Borders */
+  --border: #e3e0d9;
+  /* warme zachte border */
+  --border-strong: #cfcbc1;
+  /* iets zwaarder bij focus etc. */
+
+  /* Accent */
+  --accent: #1c1b19;
+  /* primaire actie — komt uit foreground */
   --accent-foreground: #ffffff;
-  --danger: #b91c1c;
+  --accent-hover: #2f2d29;
+  /* iets lichter bij hover */
+
+  /* Sage als rustig accent-kleur (links, focus-ringen) */
+  --sage: #5b7a5f;
+  --sage-soft: #e8eee8;
+
+  /* Status — softer, warmer pastels */
+  --success: #2f6b46;
+  --success-bg: #e6efe6;
+  --danger: #a23737;
+  --danger-bg: #f4e3e1;
+  --warning: #936108;
+  --warning-bg: #f5ead0;
+  --neutral-bg: #eceae3;
 }
 
 html,
@@ -22,9 +56,32 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Standaard focus-ring voor toetsenbord-navigatie */
+/* Subtiele focus-ring met sage-accent */
 :focus-visible {
-  outline: 2px solid var(--foreground);
+  outline: 2px solid var(--sage);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Zachte fade-in voor stap-transities */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.25s ease-out both;
+}
+
+/* Selection — past bij sage */
+::selection {
+  background: var(--sage-soft);
+  color: var(--sage);
 }

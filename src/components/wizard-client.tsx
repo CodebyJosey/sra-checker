@@ -227,7 +227,7 @@ function UploadStep({
   canContinue: boolean;
 }) {
   return (
-    <section>
+    <section className="animate-fade-up">
       <h2 className="text-base font-semibold tracking-tight">Upload bestanden</h2>
       <p className="mt-1 text-sm text-[var(--muted)]">
         We hebben een SRA-checklist en een jaarrekening nodig.
@@ -320,12 +320,12 @@ function ProcessStep(props: {
   }
  
   return (
-    <section>
+    <section className="animate-fade-up">
       <h2 className="text-base font-semibold tracking-tight">Process</h2>
       <p className="mt-1 text-sm text-[var(--muted)]">Kies welk onderdeel van de checklist je wilt controleren.</p>
  
       {/* Wat-gebruiken-we-blok */}
-      <div className="mt-5 rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-4 text-sm">
+      <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm shadow-[0_1px_2px_rgba(28,27,25,0.04)]">
         <ul className="space-y-1">
           <li className="flex items-baseline justify-between gap-2">
             <span className="text-[var(--muted)]">Checklist:</span>
@@ -465,7 +465,7 @@ function ResultsStep({
   onNewRun: () => void;
 }) {
   return (
-    <section>
+    <section className="animate-fade-up">
       <h2 className="text-base font-semibold tracking-tight">Klaar</h2>
       <p className="mt-1 text-sm text-[var(--muted)]">
         {summary.succeeded} van {summary.total} checks succesvol geëvalueerd
@@ -523,7 +523,7 @@ function SelectField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-white px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none disabled:bg-[var(--surface-soft)] disabled:text-[var(--muted)]"
+        className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none disabled:bg-[var(--surface-soft)] disabled:text-[var(--muted)]"
       >
         <option value="">{placeholder}</option>
         {options.map((o) => (

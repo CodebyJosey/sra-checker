@@ -9,6 +9,7 @@ import { prisma } from '@/infrastructure/persistence/prisma';
 import { ChecklistRepository } from '@/infrastructure/persistence/ChecklistRepository';
 import { ChecklistImporter } from '@/infrastructure/parsing/ChecklistImporter';
 import { ImportChecklistUseCase } from '@/application/ImportChecklistUseCase';
+import { uploadLimiter } from '@/lib/rate-limiter';
  
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set([
@@ -20,6 +21,11 @@ const ALLOWED_MIME_TYPES = new Set([
 export async function POST(req: Request): Promise<NextResponse> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 });
+
+  const decision = uploadLimiter.check(`upload:${session.user.id}`);
+  if (!decision.allowed) {
+    return NextResponse.json({ error: 'Te veel uploads, probeer later' }, { status: 429 });
+  }
  
   let formData: FormData;
   try {
