@@ -1,5 +1,5 @@
 import type { NextConfig } from 'next';
- 
+
 const securityHeaders = [
   // Geen embedding van onze pagina's in andere sites — voorkomt clickjacking.
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -18,7 +18,7 @@ const securityHeaders = [
     value: 'max-age=63072000; includeSubDomains; preload',
   },
 ];
- 
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -29,6 +29,5 @@ const nextConfig: NextConfig = {
     ];
   },
 };
- 
+
 export default nextConfig;
- 

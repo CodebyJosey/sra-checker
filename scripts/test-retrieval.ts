@@ -7,7 +7,7 @@
 import { PrismaClient } from '@prisma/client';
 import { EmbeddingService } from '../src/infrastructure/ai/EmbeddingService';
 import { DocumentRetriever } from '../src/infrastructure/rag/DocumentRetriever';
- 
+
 async function main(): Promise<void> {
   const prisma = new PrismaClient();
   try {
@@ -18,15 +18,15 @@ async function main(): Promise<void> {
       console.error('Geen documenten in DB. Upload eerst een PDF via de UI.');
       process.exit(1);
     }
- 
+
     const retriever = new DocumentRetriever(prisma, new EmbeddingService());
- 
+
     const queries = [
       'Zijn de grondslagen van waardering van activa en passiva opgenomen in de toelichting?',
       'Welke schattingen of onzekerheden worden genoemd?',
       'Worden de consolidatiegrondslagen uiteengezet?',
     ];
- 
+
     for (const q of queries) {
       console.log(`\n🔍 ${q}\n`);
       const results = await retriever.retrieve(doc.id, q, 3);
@@ -39,9 +39,8 @@ async function main(): Promise<void> {
     await prisma.$disconnect();
   }
 }
- 
+
 main().catch((err: unknown) => {
   console.error('❌', err);
   process.exit(1);
 });
- 

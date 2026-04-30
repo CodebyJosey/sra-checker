@@ -25,19 +25,19 @@
 interface CohereEmbedResponse {
   readonly embeddings: { readonly float?: readonly (readonly number[])[] };
 }
- 
+
 export class EmbeddingService {
   private static readonly BATCH_SIZE = 96;
   private static readonly DEFAULT_MODEL = 'embed-multilingual-v3.0';
   private static readonly API_URL = 'https://api.cohere.com/v2/embed';
- 
+
   public constructor(
     private readonly apiKey: string = process.env['COHERE_API_KEY'] ?? '',
     private readonly model: string = EmbeddingService.DEFAULT_MODEL,
   ) {
     if (!apiKey) throw new Error('COHERE_API_KEY ontbreekt in .env.local');
   }
- 
+
   /**
    * Embed grote stukken context (chunks uit een document).
    *
@@ -47,7 +47,7 @@ export class EmbeddingService {
   public async embedDocuments(texts: readonly string[]): Promise<number[][]> {
     return this.embedBatched([...texts], 'search_document');
   }
- 
+
   /**
    * Embed één korte query (SRA-check) tegen `input_type: 'search_query'`.
    */
@@ -56,7 +56,7 @@ export class EmbeddingService {
     if (!vec) throw new Error('Cohere gaf geen embedding terug');
     return vec;
   }
- 
+
   /**
    * Splitst de input in batches en concat het resultaat.
    */
@@ -80,12 +80,12 @@ export class EmbeddingService {
           embedding_types: ['float'],
         }),
       });
- 
+
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Cohere API error ${res.status}: ${text}`);
       }
- 
+
       const json = (await res.json()) as CohereEmbedResponse;
       const vectors = json.embeddings.float;
       if (!vectors || vectors.length !== batch.length) {
@@ -98,4 +98,3 @@ export class EmbeddingService {
     return out;
   }
 }
- 

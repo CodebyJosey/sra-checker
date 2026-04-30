@@ -5,7 +5,7 @@ export interface VectorRecord<TPayload> {
   readonly embedding: number[];
   readonly payload: TPayload;
 }
- 
+
 /**
  * @summary Eén gerangschikt resultaat met cosine-score.
  */
@@ -13,7 +13,7 @@ export interface RankedResult<TPayload> {
   readonly score: number;
   readonly payload: TPayload;
 }
- 
+
 /**
  * @summary In-memory cosine-similarity store.
  *
@@ -54,7 +54,7 @@ export class VectorStore {
     scored.sort((a, b) => b.score - a.score);
     return scored.slice(0, topK);
   }
- 
+
   /**
    * Cosine similarity — gangbare maat voor "hoeveel lijken deze twee
    * vectors qua richting op elkaar". Voyage embeddings zijn al
@@ -81,4 +81,3 @@ export class VectorStore {
     return denom === 0 ? 0 : dot / denom;
   }
 }
- 

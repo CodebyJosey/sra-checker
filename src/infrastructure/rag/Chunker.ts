@@ -1,5 +1,5 @@
 import type { ExtractedPage } from '@/infrastructure/parsing/PdfExtractor';
- 
+
 /**
  * @summary Eén stuk geëxtraheerde tekst, klaar om te embedden.
  */
@@ -10,7 +10,7 @@ export interface RawChunk {
   readonly position: number;
   readonly content: string;
 }
- 
+
 /**
  * @summary Splitst per-pagina-tekst in overlappende chunks.
  *
@@ -29,7 +29,7 @@ export interface RawChunk {
 export class Chunker {
   public static readonly DEFAULT_MAX_CHARS = 1500;
   public static readonly DEFAULT_OVERLAP = 200;
- 
+
   public constructor(
     private readonly maxChars: number = Chunker.DEFAULT_MAX_CHARS,
     private readonly overlap: number = Chunker.DEFAULT_OVERLAP,
@@ -38,7 +38,7 @@ export class Chunker {
       throw new Error('Chunker: overlap moet kleiner zijn dan maxChars');
     }
   }
- 
+
   /**
    * Splitst een lijst pagina's in chunks.
    *
@@ -58,7 +58,7 @@ export class Chunker {
     }
     return result;
   }
- 
+
   /**
    * Sliding-window splitser met overlap.
    * @param text - Volledige tekst van één pagina.
@@ -76,4 +76,3 @@ export class Chunker {
     return out.filter((s) => s.length > 0);
   }
 }
- 

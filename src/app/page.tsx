@@ -3,15 +3,15 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/infrastructure/auth/auth';
 import Logo from '@/components/logo';
- 
+
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) redirect('/dashboard');
- 
+
   return (
     <div className="min-h-screen bg-[var(--surface)]">
       <Header />
- 
+
       <main className="mx-auto max-w-4xl px-6">
         {/* Hero */}
         <section className="pt-20 pb-16 sm:pt-28">
@@ -21,11 +21,11 @@ export default async function HomePage() {
             <span className="text-[var(--muted)]">in minuten, niet uren.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-base text-[var(--muted)] sm:text-lg">
-            Upload je SRA-checklist en een jaarrekening. Onze AI loopt elke check langs,
-            geeft per regel een onderbouwd oordeel met paginareferentie, en schaalt mee
-            met de drukte van je samenstelafdeling.
+            Upload je SRA-checklist en een jaarrekening. Onze AI loopt elke check langs, geeft per
+            regel een onderbouwd oordeel met paginareferentie, en schaalt mee met de drukte van je
+            samenstelafdeling.
           </p>
- 
+
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
               href="/register"
@@ -40,13 +40,13 @@ export default async function HomePage() {
               Inloggen
             </Link>
           </div>
- 
+
           <p className="mt-6 flex items-center gap-2 text-xs text-[var(--muted)]">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Privacy-vriendelijk · je documenten verlaten je sessie alleen voor de AI-check.
           </p>
         </section>
- 
+
         {/* How it works */}
         <section className="border-t border-[var(--border)] py-16">
           <h2 className="text-2xl font-semibold tracking-tight">Hoe het werkt</h2>
@@ -68,7 +68,7 @@ export default async function HomePage() {
             />
           </div>
         </section>
- 
+
         {/* Features */}
         <section className="border-t border-[var(--border)] py-16">
           <h2 className="text-2xl font-semibold tracking-tight">Wat het doet</h2>
@@ -91,7 +91,7 @@ export default async function HomePage() {
             />
           </div>
         </section>
- 
+
         <footer className="border-t border-[var(--border)] py-8 text-center text-xs text-[var(--muted)]">
           sra-checker · case-opdracht Bonsai Software
         </footer>
@@ -99,7 +99,7 @@ export default async function HomePage() {
     </div>
   );
 }
- 
+
 function Header() {
   return (
     <header className="border-b border-[var(--border)]">
@@ -118,7 +118,7 @@ function Header() {
     </header>
   );
 }
- 
+
 function Step({ number, title, body }: { number: number; title: string; body: string }) {
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:shadow-sm">
@@ -130,7 +130,7 @@ function Step({ number, title, body }: { number: number; title: string; body: st
     </div>
   );
 }
- 
+
 function Feature({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-soft)] p-5">

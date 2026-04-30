@@ -1,5 +1,5 @@
 import type { CheckStatus } from '@/domain/checklist/CheckResult';
- 
+
 const STYLES: Record<CheckStatus, { label: string; className: string }> = {
   PASS: {
     label: 'Voldaan',
@@ -18,16 +18,15 @@ const STYLES: Record<CheckStatus, { label: string; className: string }> = {
   },
   NOT_APPLICABLE: {
     label: 'N.v.t.',
-    className:
-      'bg-[var(--neutral-bg)] text-[var(--muted)] ring-1 ring-inset ring-[var(--border)]',
+    className: 'bg-[var(--neutral-bg)] text-[var(--muted)] ring-1 ring-inset ring-[var(--border)]',
   },
 };
- 
+
 interface Props {
   readonly status: CheckStatus;
   readonly className?: string;
 }
- 
+
 export default function StatusBadge({ status, className = '' }: Props) {
   const s = STYLES[status];
   return (
@@ -38,4 +37,3 @@ export default function StatusBadge({ status, className = '' }: Props) {
     </span>
   );
 }
- 

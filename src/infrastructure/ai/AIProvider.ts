@@ -1,5 +1,5 @@
 import type { CheckStatus } from '@/domain/checklist/CheckResult';
- 
+
 /**
  * @summary Eén relevant fragment dat met de evaluatie meegaat (RAG-output).
  */
@@ -7,7 +7,7 @@ export interface ProviderFragment {
   readonly page: number;
   readonly content: string;
 }
- 
+
 /**
  * @summary Input voor één check-evaluatie.
  */
@@ -19,7 +19,7 @@ export interface EvaluateCheckInput {
   /** Top-K fragmenten uit het document, in volgorde van relevantie. */
   readonly fragments: readonly ProviderFragment[];
 }
- 
+
 /**
  * @summary Gestructureerde uitvoer van een check-evaluatie.
  *
@@ -36,7 +36,7 @@ export interface EvaluateCheckOutput {
   /** Voor traceability — welk model produceerde dit antwoord? */
   readonly modelUsed: string;
 }
- 
+
 /**
  * @summary Contract waar elke AI-provider aan moet voldoen.
  *
@@ -55,4 +55,3 @@ export interface AIProvider {
    */
   evaluateCheck(input: EvaluateCheckInput): Promise<EvaluateCheckOutput>;
 }
- 

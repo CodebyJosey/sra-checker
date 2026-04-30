@@ -21,19 +21,19 @@ import { RunChecksUseCase } from '@/application/RunChecksUseCase';
 import { runLimiter } from '@/lib/rate-limiter';
 
 export const dyanmic = 'force-dynamic';
- 
+
 export const maxDuration = 300;
- 
+
 const BodySchema = z.object({
   checklistId: z.string().min(1),
   sheet: z.string().min(1),
   type: z.enum(['groot', 'midden', 'klein']).default('midden'),
 });
- 
+
 interface RouteContext {
   readonly params: Promise<{ id: string }>;
 }
- 
+
 export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return jsonError(401, 'Niet ingelogd');
@@ -52,35 +52,35 @@ export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
       },
     );
   }
- 
+
   const { id } = await ctx.params;
- 
+
   const documentRepo = new DocumentRepository(prisma);
   const document = await documentRepo.findOwned(id, session.user.id);
   if (!document) return jsonError(404, 'Niet gevonden');
- 
+
   const body = (await req.json().catch(() => null)) as unknown;
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) return jsonError(400, 'Ongeldige body');
- 
+
   const checklistRepo = new ChecklistRepository(prisma);
   const checklist = await checklistRepo.findOwned(parsed.data.checklistId, session.user.id);
   if (!checklist) return jsonError(404, 'Checklist niet gevonden');
- 
+
   const useCase = new RunChecksUseCase(
     new DocumentRetriever(prisma, new EmbeddingService()),
     new AnthropicProvider(),
     checklistRepo,
     new CheckResultRepository(prisma),
   );
- 
+
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const encoder = new TextEncoder();
       const send = (event: object): void => {
         controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));
       };
- 
+
       try {
         const summary = await useCase.execute(
           document.id,
@@ -98,7 +98,7 @@ export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
       }
     },
   });
- 
+
   return new Response(stream, {
     status: 200,
     headers: {
@@ -108,11 +108,10 @@ export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
     },
   });
 }
- 
+
 function jsonError(status: number, message: string): Response {
   return new Response(JSON.stringify({ error: message }), {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
 }
- 

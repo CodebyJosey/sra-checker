@@ -1,5 +1,5 @@
 import type { Document as DbDocument, PrismaClient } from '@prisma/client';
- 
+
 /**
  * @summary Persistence-laag voor `Document` en zijn chunks.
  *
@@ -9,7 +9,7 @@ import type { Document as DbDocument, PrismaClient } from '@prisma/client';
  */
 export class DocumentRepository {
   public constructor(private readonly prisma: PrismaClient) {}
- 
+
   /**
    * Maakt een nieuw Document-record aan.
    *
@@ -23,43 +23,42 @@ export class DocumentRepository {
     pageCount: number;
   }): Promise<DbDocument> {
     return this.prisma.document.create({ data: input });
-    }
-    
+  }
+
   /**
- * Werkt het opslag-pad bij nadat het bestand op disk geschreven is.
- *
- * @param id - Document-id.
- * @param storagePath - Absoluut pad naar de PDF op disk.
- */
-public async updateStoragePath(id: string, storagePath: string): Promise<void> {
-  await this.prisma.document.update({
-    where: { id },
-    data: { storagePath },
-  });
-    }
-    
-    /**
-     * Slaat chunks met pre-berekende embeddings op.
-     *
-     * @param documentId - Het bovenliggende document.
-     * @param chunks - Chunks met content + 1024-dim embedding.
-     */
-    public async saveChunks(
+   * Werkt het opslag-pad bij nadat het bestand op disk geschreven is.
+   *
+   * @param id - Document-id.
+   * @param storagePath - Absoluut pad naar de PDF op disk.
+   */
+  public async updateStoragePath(id: string, storagePath: string): Promise<void> {
+    await this.prisma.document.update({
+      where: { id },
+      data: { storagePath },
+    });
+  }
+
+  /**
+   * Slaat chunks met pre-berekende embeddings op.
+   *
+   * @param documentId - Het bovenliggende document.
+   * @param chunks - Chunks met content + 1024-dim embedding.
+   */
+  public async saveChunks(
     documentId: string,
     chunks: readonly { page: number; content: string; embedding: number[] }[],
-    ): Promise<void> {
+  ): Promise<void> {
     if (chunks.length === 0) return;
     await this.prisma.documentChunk.createMany({
-        data: chunks.map((c) => ({
+      data: chunks.map((c) => ({
         documentId,
         page: c.page,
         content: c.content,
         embedding: JSON.stringify(c.embedding),
-        })),
+      })),
     });
-    }
-  
- 
+  }
+
   /**
    * Lijst documenten van één gebruiker, nieuwste eerst.
    *
@@ -71,7 +70,7 @@ public async updateStoragePath(id: string, storagePath: string): Promise<void> {
       orderBy: { createdAt: 'desc' },
     });
   }
- 
+
   /**
    * Eén document ophalen met ownership-check ingebakken.
    *
@@ -81,6 +80,5 @@ public async updateStoragePath(id: string, storagePath: string): Promise<void> {
    */
   public async findOwned(id: string, userId: string): Promise<DbDocument | null> {
     return this.prisma.document.findFirst({ where: { id, userId } });
-    }
+  }
 }
- 

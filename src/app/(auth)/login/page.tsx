@@ -1,11 +1,36 @@
 'use client';
  
-import { useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from '@/infrastructure/auth/auth-client';
  
+/**
+ * @summary Login-pagina.
+ *
+ * @remarks
+ * `useSearchParams()` triggert client-side rendering — daarom moet alles
+ * binnen een Suspense-boundary staan zodat Next de outer-pagina toch
+ * statisch kan pre-renderen tijdens `next build`.
+ */
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+ 
+function LoginFallback() {
+  return (
+    <>
+      <h1 className="text-xl font-semibold tracking-tight">Inloggen</h1>
+      <p className="mt-1 text-sm text-[var(--muted)]">Een moment…</p>
+    </>
+  );
+}
+ 
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') ?? '/dashboard';

@@ -12,17 +12,17 @@
  * een geldige cookie wordt later aan de server-side opnieuw gevalideerd.
  */
 import { NextResponse, type NextRequest } from 'next/server';
- 
+
 const COOKIE_NAME = 'sra-checker.session_token';
 const PUBLIC_PATHS = ['/login', '/register', '/'];
- 
+
 export function proxy(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
- 
+
   if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
- 
+
   const sessionCookie = req.cookies.get(COOKIE_NAME);
   if (!sessionCookie) {
     const url = req.nextUrl.clone();
@@ -30,14 +30,13 @@ export function proxy(req: NextRequest): NextResponse {
     url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);
   }
- 
+
   return NextResponse.next();
 }
- 
+
 export const config = {
   matcher: [
     // Alles behalve assets, _next, en de auth-API.
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
- 

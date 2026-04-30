@@ -12,17 +12,17 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { prisma } from '../persistence/prisma';
- 
+
 const secret = process.env['BETTER_AUTH_SECRET'];
 if (!secret) {
   throw new Error('BETTER_AUTH_SECRET ontbreekt in .env.local');
 }
- 
+
 const baseUrl = process.env['BETTER_AUTH_URL'];
 if (!baseUrl) {
   throw new Error('BETTER_AUTH_URL ontbreekt in .env.local');
 }
- 
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: 'sqlite' }),
   secret,
@@ -46,4 +46,3 @@ export const auth = betterAuth({
     cookiePrefix: 'sra-checker',
   },
 });
- 

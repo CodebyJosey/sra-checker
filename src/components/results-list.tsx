@@ -1,9 +1,9 @@
 'use client';
- 
+
 import { useState, useMemo } from 'react';
 import StatusBadge from './status-badge';
 import type { CheckStatus } from '@/domain/checklist/CheckResult';
- 
+
 export interface ResultRow {
   readonly id: string;
   readonly status: CheckStatus;
@@ -19,9 +19,9 @@ export interface ResultRow {
     readonly source: string | null;
   };
 }
- 
+
 type Filter = 'all' | 'PASS' | 'FAIL' | 'UNCERTAIN' | 'NOT_APPLICABLE';
- 
+
 const FILTERS: ReadonlyArray<{ value: Filter; label: string }> = [
   { value: 'all', label: 'Alle' },
   { value: 'FAIL', label: 'Niet voldaan' },
@@ -29,15 +29,15 @@ const FILTERS: ReadonlyArray<{ value: Filter; label: string }> = [
   { value: 'PASS', label: 'Voldaan' },
   { value: 'NOT_APPLICABLE', label: 'N.v.t.' },
 ];
- 
+
 export default function ResultsList({ results }: { results: ResultRow[] }) {
   const [filter, setFilter] = useState<Filter>('all');
- 
+
   const filtered = useMemo(
     () => (filter === 'all' ? results : results.filter((r) => r.status === filter)),
     [results, filter],
   );
- 
+
   return (
     <div>
       <div className="flex flex-wrap gap-2">
@@ -63,7 +63,7 @@ export default function ResultsList({ results }: { results: ResultRow[] }) {
           );
         })}
       </div>
- 
+
       <ul className="mt-6 space-y-3">
         {filtered.length === 0 ? (
           <li className="rounded-lg border border-dashed border-[var(--border)] p-8 text-center text-sm text-[var(--muted)]">
@@ -76,7 +76,7 @@ export default function ResultsList({ results }: { results: ResultRow[] }) {
     </div>
   );
 }
- 
+
 function ResultRowItem({ row }: { row: ResultRow }) {
   return (
     <li className="rounded-lg border border-[var(--border)] bg-[var(--surface)]">
@@ -97,26 +97,26 @@ function ResultRowItem({ row }: { row: ResultRow }) {
           </div>
           <span className="shrink-0 text-xs text-[var(--muted)] group-open:rotate-180">▾</span>
         </summary>
- 
+
         <div className="space-y-3 border-t border-[var(--border)] px-4 py-3 text-sm">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            <p className="text-xs font-medium tracking-wide text-[var(--muted)] uppercase">
               Onderbouwing
             </p>
             <p className="mt-1 leading-relaxed">{row.reasoning}</p>
           </div>
- 
+
           {row.citation && (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+              <p className="text-xs font-medium tracking-wide text-[var(--muted)] uppercase">
                 Citaat uit de jaarrekening
               </p>
-              <blockquote className="mt-1 border-l-2 border-[var(--border)] pl-3 italic text-[var(--muted)]">
+              <blockquote className="mt-1 border-l-2 border-[var(--border)] pl-3 text-[var(--muted)] italic">
                 &ldquo;{row.citation}&rdquo;
               </blockquote>
             </div>
           )}
- 
+
           <p className="text-xs text-[var(--muted)]">
             Beoordeeld door{' '}
             <code className="rounded bg-[var(--surface-soft)] px-1">{row.modelUsed}</code>
@@ -126,4 +126,3 @@ function ResultRowItem({ row }: { row: ResultRow }) {
     </li>
   );
 }
- 

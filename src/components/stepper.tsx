@@ -1,18 +1,18 @@
 'use client';
- 
+
 export type StepState = 'done' | 'active' | 'todo';
- 
+
 export interface Step {
   readonly id: string;
   readonly label: string;
   readonly state: StepState;
 }
- 
+
 interface Props {
   readonly steps: readonly Step[];
   readonly onStepClick?: (id: string) => void;
 }
- 
+
 /**
  * Compacte tabbladen-stepper. Inactieve, niet-klikbare stappen zijn dim.
  */
@@ -50,4 +50,3 @@ export default function Stepper({ steps, onStepClick }: Props) {
     </nav>
   );
 }
- 

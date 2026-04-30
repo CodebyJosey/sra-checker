@@ -1,7 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import type { EmbeddingService } from '@/infrastructure/ai/EmbeddingService';
 import { VectorStore } from '@/infrastructure/rag/VectorStore';
- 
+
 /**
  * @summary Eén relevant fragment voor een check, met paginareferentie en score.
  */
@@ -11,7 +11,7 @@ export interface RetrievedFragment {
   readonly content: string;
   readonly score: number;
 }
- 
+
 /**
  * @summary Hoog-niveau API: "geef me de top-K relevante fragmenten van dit document voor deze query".
  *
@@ -31,7 +31,7 @@ export class DocumentRetriever {
     private readonly prisma: PrismaClient,
     private readonly embeddings: EmbeddingService,
   ) {}
- 
+
   /**
    * Embedt de query, haalt alle chunks van het document op, en geeft de top-K terug.
    *
@@ -39,18 +39,14 @@ export class DocumentRetriever {
    * @param query - Vrije-vorm vraag of check-tekst.
    * @param topK - Aantal fragmenten om terug te geven (default 5).
    */
-  public async retrieve(
-    documentId: string,
-    query: string,
-    topK = 5,
-  ): Promise<RetrievedFragment[]> {
+  public async retrieve(documentId: string, query: string, topK = 5): Promise<RetrievedFragment[]> {
     const queryVec = await this.embeddings.embedQuery(query);
- 
+
     const rows = await this.prisma.documentChunk.findMany({
       where: { documentId, NOT: { embedding: '' } },
       select: { id: true, page: true, content: true, embedding: true },
     });
- 
+
     const records = rows
       .map((r) => {
         if (!r.embedding) return null;
@@ -61,7 +57,7 @@ export class DocumentRetriever {
         };
       })
       .filter((r): r is NonNullable<typeof r> => r !== null);
- 
+
     const ranked = VectorStore.search(queryVec, records, topK);
     return ranked.map((r) => ({
       chunkId: r.payload.chunkId,
@@ -71,4 +67,3 @@ export class DocumentRetriever {
     }));
   }
 }
- 

@@ -1,5 +1,5 @@
 import { extractText } from 'unpdf';
- 
+
 /**
  * @summary Eén pagina aan platte tekst uit een PDF.
  */
@@ -9,7 +9,7 @@ export interface ExtractedPage {
   /** Platte tekst van die pagina. Kan leeg zijn (bv. afbeelding-pagina). */
   readonly text: string;
 }
- 
+
 /**
  * @summary Resultaat van PDF-extractie.
  */
@@ -17,7 +17,7 @@ export interface ExtractedDocument {
   readonly pageCount: number;
   readonly pages: readonly ExtractedPage[];
 }
- 
+
 /**
  * @summary Haalt platte tekst per pagina uit een PDF-bestand.
  *
@@ -43,25 +43,25 @@ export class PdfExtractor {
    */
   public async extract(buffer: Buffer | Uint8Array): Promise<ExtractedDocument> {
     const bytes = buffer instanceof Buffer ? new Uint8Array(buffer) : buffer;
- 
+
     // mergePages: false -> result.text wordt een string[] met één entry per pagina.
     const result = await extractText(bytes, { mergePages: false });
- 
+
     if (!Array.isArray(result.text)) {
       throw new Error('Onverwacht extractText-resultaat: text is geen array');
     }
- 
+
     const pages: ExtractedPage[] = result.text.map((text, index) => ({
       page: index + 1,
       text: this.normalize(text),
     }));
- 
+
     return {
       pageCount: result.totalPages ?? pages.length,
       pages,
     };
   }
- 
+
   /**
    * Normaliseert wittruimte: ligature/regelafbreek-fixes en triple-spaces inkorten.
    */

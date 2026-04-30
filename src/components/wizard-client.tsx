@@ -1,59 +1,59 @@
 'use client';
- 
+
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Stepper, { type Step } from './stepper';
 import FileDropZone from './file-drop-zone';
- 
+
 interface SheetInfo {
   readonly name: string;
   readonly idCount: number;
 }
- 
+
 export interface ChecklistOption {
   readonly id: string;
   readonly name: string;
   readonly filename: string;
   readonly sheets: readonly SheetInfo[];
 }
- 
+
 export interface DocumentOption {
   readonly id: string;
   readonly filename: string;
   readonly pageCount: number;
 }
- 
+
 interface Props {
   readonly initialChecklists: readonly ChecklistOption[];
   readonly initialDocuments: readonly DocumentOption[];
 }
- 
+
 type StepId = 'upload' | 'process' | 'results';
- 
+
 interface RunSummary {
   readonly succeeded: number;
   readonly failed: number;
   readonly total: number;
   readonly documentId: string;
 }
- 
+
 export default function WizardClient({ initialChecklists, initialDocuments }: Props) {
   const router = useRouter();
- 
+
   const [step, setStep] = useState<StepId>(
     initialChecklists.length > 0 && initialDocuments.length > 0 ? 'process' : 'upload',
   );
- 
+
   // Voor de selectors gebruiken we de meest-recent geüploade items als default.
   const [checklistId, setChecklistId] = useState<string>(initialChecklists[0]?.id ?? '');
   const [documentId, setDocumentId] = useState<string>(initialDocuments[0]?.id ?? '');
   const [sheet, setSheet] = useState<string>('');
- 
+
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<RunSummary | null>(null);
- 
+
   const selectedChecklist = useMemo(
     () => initialChecklists.find((c) => c.id === checklistId) ?? null,
     [initialChecklists, checklistId],
@@ -62,23 +62,23 @@ export default function WizardClient({ initialChecklists, initialDocuments }: Pr
     () => initialDocuments.find((d) => d.id === documentId) ?? null,
     [initialDocuments, documentId],
   );
- 
+
   const hasUploads = initialChecklists.length > 0 && initialDocuments.length > 0;
   const canRun = hasUploads && checklistId !== '' && documentId !== '' && sheet !== '';
- 
+
   const steps: Step[] = [
     { id: 'upload', label: 'Upload files', state: stateOf('upload', step, hasUploads, summary) },
     { id: 'process', label: 'Process', state: stateOf('process', step, hasUploads, summary) },
     { id: 'results', label: 'Resultaten', state: stateOf('results', step, hasUploads, summary) },
   ];
- 
+
   async function handleStart(): Promise<void> {
     if (!canRun) return;
     setError(null);
     setSummary(null);
     setRunning(true);
     setProgress({ done: 0, total: 0 });
- 
+
     try {
       const res = await fetch(`/api/documents/${documentId}/run`, {
         method: 'POST',
@@ -92,11 +92,11 @@ export default function WizardClient({ initialChecklists, initialDocuments }: Pr
         setError(body.error ?? `Run mislukt (${res.status})`);
         return;
       }
- 
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
- 
+
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -114,7 +114,7 @@ export default function WizardClient({ initialChecklists, initialDocuments }: Pr
     } finally {
       setRunning(false);
     }
- 
+
     function handleEvent(event: unknown): void {
       if (typeof event !== 'object' || event === null) return;
       const ev = event as Record<string, unknown>;
@@ -135,20 +135,20 @@ export default function WizardClient({ initialChecklists, initialDocuments }: Pr
       }
     }
   }
- 
+
   function handleStepClick(id: string): void {
     if (running) return;
     if (id === 'upload') setStep('upload');
     if (id === 'process' && hasUploads) setStep('process');
     if (id === 'results' && summary !== null) setStep('results');
   }
- 
+
   return (
     <>
       <div className="mt-6 flex items-center justify-between border-b border-[var(--border)] pb-3">
         <Stepper steps={steps} onStepClick={handleStepClick} />
       </div>
- 
+
       <div className="mt-8">
         {step === 'upload' && (
           <UploadStep
@@ -159,7 +159,7 @@ export default function WizardClient({ initialChecklists, initialDocuments }: Pr
             canContinue={hasUploads}
           />
         )}
- 
+
         {step === 'process' && (
           <ProcessStep
             checklists={initialChecklists}
@@ -181,7 +181,7 @@ export default function WizardClient({ initialChecklists, initialDocuments }: Pr
             error={error}
           />
         )}
- 
+
         {step === 'results' && summary !== null && (
           <ResultsStep
             summary={summary}
@@ -197,7 +197,7 @@ export default function WizardClient({ initialChecklists, initialDocuments }: Pr
     </>
   );
 }
- 
+
 function stateOf(
   id: StepId,
   current: StepId,
@@ -210,9 +210,9 @@ function stateOf(
   if (id === 'results') return summary !== null ? 'todo' : 'todo';
   return 'todo';
 }
- 
+
 /* ---------- Upload step ---------- */
- 
+
 function UploadStep({
   checklists,
   documents,
@@ -232,7 +232,7 @@ function UploadStep({
       <p className="mt-1 text-sm text-[var(--muted)]">
         We hebben een SRA-checklist en een jaarrekening nodig.
       </p>
- 
+
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <FileDropZone
           label="SRA-checklist"
@@ -259,7 +259,7 @@ function UploadStep({
           onUploaded={onUploaded}
         />
       </div>
- 
+
       <div className="mt-8 flex justify-end">
         <button
           type="button"
@@ -273,9 +273,9 @@ function UploadStep({
     </section>
   );
 }
- 
+
 /* ---------- Process step ---------- */
- 
+
 function ProcessStep(props: {
   checklists: readonly ChecklistOption[];
   documents: readonly DocumentOption[];
@@ -308,22 +308,24 @@ function ProcessStep(props: {
     onBack,
     error,
   } = props;
- 
+
   const [showAdvanced, setShowAdvanced] = useState(false);
- 
+
   const hasMultipleChecklists = checklists.length > 1;
   const hasMultipleDocuments = documents.length > 1;
   const canSwitch = hasMultipleChecklists || hasMultipleDocuments;
- 
+
   if (running) {
     return <RunningView progress={progress} />;
   }
- 
+
   return (
     <section className="animate-fade-up">
       <h2 className="text-base font-semibold tracking-tight">Process</h2>
-      <p className="mt-1 text-sm text-[var(--muted)]">Kies welk onderdeel van de checklist je wilt controleren.</p>
- 
+      <p className="mt-1 text-sm text-[var(--muted)]">
+        Kies welk onderdeel van de checklist je wilt controleren.
+      </p>
+
       {/* Wat-gebruiken-we-blok */}
       <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm shadow-[0_1px_2px_rgba(28,27,25,0.04)]">
         <ul className="space-y-1">
@@ -346,7 +348,7 @@ function ProcessStep(props: {
           </button>
         )}
       </div>
- 
+
       {showAdvanced && canSwitch && (
         <div className="mt-4 space-y-4">
           {hasMultipleChecklists && (
@@ -369,7 +371,7 @@ function ProcessStep(props: {
           )}
         </div>
       )}
- 
+
       {/* Sheet-selector — de enige actieve keuze */}
       <div className="mt-6">
         <SelectField
@@ -386,13 +388,13 @@ function ProcessStep(props: {
           disabled={selectedChecklist === null}
         />
       </div>
- 
+
       {error && (
         <p role="alert" className="mt-4 text-sm text-[var(--danger)]">
           {error}
         </p>
       )}
- 
+
       <div className="mt-8 flex items-center justify-between">
         <button
           type="button"
@@ -413,25 +415,25 @@ function ProcessStep(props: {
     </section>
   );
 }
- 
+
 function RunningView({ progress }: { progress: { done: number; total: number } | null }) {
   const total = progress?.total ?? 0;
   const done = progress?.done ?? 0;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
- 
+
   return (
     <section className="py-6">
       <h2 className="text-base font-semibold tracking-tight">Bezig met evalueren</h2>
       <p className="mt-1 text-sm text-[var(--muted)]">
         Claude beoordeelt elke check tegen de jaarrekening. Even geduld…
       </p>
- 
+
       <div className="mt-8">
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium tabular-nums">
             {done} / {total > 0 ? total : '…'}
           </span>
-          <span className="tabular-nums text-[var(--muted)]">{pct}%</span>
+          <span className="text-[var(--muted)] tabular-nums">{pct}%</span>
         </div>
         <div
           className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--surface-soft)]"
@@ -452,9 +454,9 @@ function RunningView({ progress }: { progress: { done: number; total: number } |
     </section>
   );
 }
- 
+
 /* ---------- Results step ---------- */
- 
+
 function ResultsStep({
   summary,
   onBack,
@@ -471,7 +473,7 @@ function ResultsStep({
         {summary.succeeded} van {summary.total} checks succesvol geëvalueerd
         {summary.failed > 0 ? ` · ${summary.failed} mislukt` : ''}.
       </p>
- 
+
       <div className="mt-6 flex flex-wrap gap-3">
         <a
           href={`/documents/${summary.documentId}`}
@@ -487,7 +489,7 @@ function ResultsStep({
           Nog een analyse
         </button>
       </div>
- 
+
       <button
         type="button"
         onClick={onBack}
@@ -498,9 +500,9 @@ function ResultsStep({
     </section>
   );
 }
- 
+
 /* ---------- Tiny UI primitives ---------- */
- 
+
 function SelectField({
   label,
   value,

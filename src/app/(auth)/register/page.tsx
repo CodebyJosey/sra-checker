@@ -1,19 +1,19 @@
 'use client';
- 
+
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signUp } from '@/infrastructure/auth/auth-client';
- 
+
 export default function RegisterPage() {
   const router = useRouter();
- 
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
- 
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setError(null);
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     router.push('/dashboard');
     router.refresh();
   }
- 
+
   return (
     <>
       <h1 className="text-xl font-semibold tracking-tight">Account aanmaken</h1>
@@ -37,7 +37,7 @@ export default function RegisterPage() {
           Inloggen
         </Link>
       </p>
- 
+
       <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
         <div>
           <label htmlFor="name" className="block text-sm font-medium">
@@ -52,7 +52,7 @@ export default function RegisterPage() {
             className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
           />
         </div>
- 
+
         <div>
           <label htmlFor="email" className="block text-sm font-medium">
             E-mail
@@ -67,7 +67,7 @@ export default function RegisterPage() {
             className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm shadow-sm focus:border-[var(--foreground)] focus:outline-none"
           />
         </div>
- 
+
         <div>
           <label htmlFor="password" className="block text-sm font-medium">
             Wachtwoord
@@ -84,13 +84,13 @@ export default function RegisterPage() {
           />
           <p className="mt-1 text-xs text-[var(--muted)]">Minimaal 10 tekens.</p>
         </div>
- 
+
         {error && (
           <p role="alert" className="text-sm text-[var(--danger)]">
             {error}
           </p>
         )}
- 
+
         <button
           type="submit"
           disabled={pending}
@@ -102,4 +102,3 @@ export default function RegisterPage() {
     </>
   );
 }
- 

@@ -1,13 +1,13 @@
 'use client';
- 
+
 import { useState, useRef, type ChangeEvent, type DragEvent } from 'react';
- 
+
 interface ExistingItem {
   readonly id: string;
   readonly filename: string;
   readonly hint: string;
 }
- 
+
 interface Props {
   readonly label: string;
   readonly sublabel: string;
@@ -17,7 +17,7 @@ interface Props {
   readonly onUploaded: () => void;
   readonly icon?: React.ReactNode;
 }
- 
+
 export default function FileDropZone({
   label,
   sublabel,
@@ -31,7 +31,7 @@ export default function FileDropZone({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
- 
+
   async function uploadFile(file: File): Promise<void> {
     setError(null);
     setPending(true);
@@ -50,19 +50,19 @@ export default function FileDropZone({
       setPending(false);
     }
   }
- 
+
   async function handleChange(e: ChangeEvent<HTMLInputElement>): Promise<void> {
     const file = e.target.files?.[0];
     if (file) await uploadFile(file);
   }
- 
+
   function handleDrop(e: DragEvent<HTMLLabelElement>): void {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file) void uploadFile(file);
   }
- 
+
   return (
     <div className="flex flex-col">
       <label
@@ -77,7 +77,7 @@ export default function FileDropZone({
           (pending
             ? 'border-[var(--border)] bg-[var(--surface-soft)] opacity-70'
             : dragOver
-              ? 'border-[var(--foreground)] bg-[var(--surface-soft)] scale-[1.01]'
+              ? 'scale-[1.01] border-[var(--foreground)] bg-[var(--surface-soft)]'
               : 'border-[var(--border)] bg-[var(--surface-soft)] hover:border-[var(--foreground)] hover:bg-[var(--surface)]')
         }
       >
@@ -99,13 +99,13 @@ export default function FileDropZone({
           </p>
         </div>
       </label>
- 
+
       {error && (
         <p role="alert" className="mt-2 text-xs text-[var(--danger)]">
           {error}
         </p>
       )}
- 
+
       {existing.length > 0 && (
         <ul className="mt-3 space-y-1">
           {existing.map((item) => (
@@ -125,7 +125,7 @@ export default function FileDropZone({
     </div>
   );
 }
- 
+
 function UploadIcon() {
   return (
     <svg
@@ -144,15 +144,10 @@ function UploadIcon() {
     </svg>
   );
 }
- 
+
 function CheckIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 20 20"
-      className={className}
-      fill="currentColor"
-      aria-hidden
-    >
+    <svg viewBox="0 0 20 20" className={className} fill="currentColor" aria-hidden>
       <path
         fillRule="evenodd"
         d="M16.7 5.3a1 1 0 0 1 0 1.4l-7 7a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L9 11.6l6.3-6.3a1 1 0 0 1 1.4 0z"

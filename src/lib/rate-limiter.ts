@@ -18,14 +18,14 @@ export interface RateLimitDecision {
   readonly resetAt: number;
   readonly remaining: number;
 }
- 
+
 export class RateLimiter {
   private readonly hits = new Map<string, number[]>();
- 
+
   public constructor(
     private readonly options: { readonly max: number; readonly windowMs: number },
   ) {}
- 
+
   /**
    * Beslist of een nieuwe aanroep toegestaan is en registreert hem indien zo.
    *
@@ -34,12 +34,12 @@ export class RateLimiter {
   public check(key: string): RateLimitDecision {
     const now = Date.now();
     const recent = (this.hits.get(key) ?? []).filter((t) => now - t < this.options.windowMs);
- 
+
     if (recent.length >= this.options.max) {
       const resetAt = (recent[0] ?? now) + this.options.windowMs;
       return { allowed: false, resetAt, remaining: 0 };
     }
- 
+
     recent.push(now);
     this.hits.set(key, recent);
     return {
@@ -49,7 +49,7 @@ export class RateLimiter {
     };
   }
 }
- 
+
 /**
  * Globale rate-limiter voor de zware run-endpoint: 5 evaluaties per uur per user.
  * Beschermt tegen runaway-API-kosten als een gebruiker per ongeluk de knop spamt.
@@ -58,7 +58,7 @@ export const runLimiter = new RateLimiter({
   max: 5,
   windowMs: 60 * 60 * 1000,
 });
- 
+
 /**
  * Lichtere limiter voor uploads — 30 per uur per user.
  */

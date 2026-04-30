@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build-time hoeven deze niet echt te werken — we testen alleen of
+          # de bundle compileert. Echte secrets zitten in deployment.
+          DATABASE_URL: 'file:./build.db'
+          BETTER_AUTH_SECRET: 'ci-build-secret-not-used-32-chars-padding'
+          BETTER_AUTH_URL: 'http://localhost:3000'
+          ANTHROPIC_API_KEY: 'sk-ant-ci-dummy'
+          COHERE_API_KEY: 'co-ci-dummy'

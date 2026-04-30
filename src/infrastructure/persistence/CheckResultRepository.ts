@@ -1,6 +1,6 @@
 import type { CheckResult as DbCheckResult, PrismaClient } from '@prisma/client';
 import type { CheckStatus } from '@/domain/checklist/CheckResult';
- 
+
 export interface PersistResultInput {
   readonly documentId: string;
   readonly checklistItemId: string;
@@ -10,7 +10,7 @@ export interface PersistResultInput {
   readonly reasoning: string;
   readonly modelUsed: string;
 }
- 
+
 /**
  * @summary Persistence-laag voor `CheckResult`.
  *
@@ -20,7 +20,7 @@ export interface PersistResultInput {
  */
 export class CheckResultRepository {
   public constructor(private readonly prisma: PrismaClient) {}
- 
+
   /**
    * Slaat één evaluatie op (insert of update).
    */
@@ -42,7 +42,7 @@ export class CheckResultRepository {
       },
     });
   }
- 
+
   /**
    * Lijst van resultaten voor één document, met de bijbehorende
    * checklist-items voor weergave.
@@ -51,13 +51,10 @@ export class CheckResultRepository {
     return this.prisma.checkResult.findMany({
       where: { documentId },
       include: { checklistItem: true },
-      orderBy: [
-        { checklistItem: { sheet: 'asc' } },
-        { checklistItem: { ordering: 'asc' } },
-      ],
+      orderBy: [{ checklistItem: { sheet: 'asc' } }, { checklistItem: { ordering: 'asc' } }],
     });
   }
- 
+
   /**
    * Aantal resultaten per status — handig voor dashboard-summaries.
    */

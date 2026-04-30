@@ -1,12 +1,12 @@
 'use client';
- 
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
- 
+
 interface Props {
   readonly documentId: string;
 }
- 
+
 /**
  * @summary Knop die de evaluatie start, met een full-screen overlay tijdens de run.
  *
@@ -19,7 +19,7 @@ export default function RunChecksButton({ documentId }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
- 
+
   async function handleClick(): Promise<void> {
     setError(null);
     setPending(true);
@@ -35,7 +35,7 @@ export default function RunChecksButton({ documentId }: Props) {
       setPending(false);
     }
   }
- 
+
   return (
     <>
       <div className="flex items-center gap-3">
@@ -49,12 +49,12 @@ export default function RunChecksButton({ documentId }: Props) {
         </button>
         {error && <span className="text-xs text-[var(--danger)]">{error}</span>}
       </div>
- 
+
       {pending && <EvaluationOverlay />}
     </>
   );
 }
- 
+
 function EvaluationOverlay() {
   return (
     <div
@@ -65,9 +65,7 @@ function EvaluationOverlay() {
     >
       <div className="mx-4 w-full max-w-sm rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center shadow-lg">
         <Spinner />
-        <h2 className="mt-4 text-base font-semibold tracking-tight">
-          Bezig met evalueren
-        </h2>
+        <h2 className="mt-4 text-base font-semibold tracking-tight">Bezig met evalueren</h2>
         <p className="mt-1.5 text-sm text-[var(--muted)]">
           Claude beoordeelt de jaarrekening op alle SRA-checks.
           <br />
@@ -80,7 +78,7 @@ function EvaluationOverlay() {
     </div>
   );
 }
- 
+
 function Spinner() {
   return (
     <svg
@@ -89,20 +87,8 @@ function Spinner() {
       fill="none"
       aria-hidden="true"
     >
-      <circle
-        className="opacity-20"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="3"
-      />
-      <path
-        className="opacity-90"
-        fill="currentColor"
-        d="M4 12a8 8 0 0 1 8-8v3a5 5 0 0 0-5 5H4z"
-      />
+      <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+      <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v3a5 5 0 0 0-5 5H4z" />
     </svg>
   );
 }
- 

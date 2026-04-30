@@ -8,7 +8,7 @@ type ChecklistRow = {
   createdAt: Date;
   sheets: string;
 };
- 
+
 /**
  * Beschrijving van één sheet uit een Checklist, voor UI-gebruik.
  */
@@ -16,7 +16,7 @@ export interface SheetSummary {
   readonly name: string;
   readonly idCount: number;
 }
- 
+
 export interface ChecklistSummary {
   readonly id: string;
   readonly name: string;
@@ -24,15 +24,17 @@ export interface ChecklistSummary {
   readonly createdAt: Date;
   readonly sheets: readonly SheetSummary[];
 }
- 
+
 /**
  * @summary Persistence-laag voor `Checklist` en zijn `ChecklistItem`s.
  */
 export class ChecklistRepository {
   // PrismaClient type may not include generated model delegates in some setups;
   // widen the type to include the used delegates to avoid TS errors.
-  public constructor(private readonly prisma: PrismaClient & { checklist: any; checklistItem: any }) {}
- 
+  public constructor(
+    private readonly prisma: PrismaClient & { checklist: any; checklistItem: any },
+  ) {}
+
   /**
    * Maakt een nieuwe `Checklist` aan en schrijft alle items in één transactie.
    *
@@ -55,7 +57,7 @@ export class ChecklistRepository {
         sheets: JSON.stringify(input.sheets),
       },
     });
- 
+
     if (input.items.length > 0) {
       // SQLite maximaal ~500 vars per insert — splitsen voor de zekerheid.
       const batchSize = 100;
@@ -76,10 +78,10 @@ export class ChecklistRepository {
         });
       }
     }
- 
+
     return checklist.id;
   }
- 
+
   /**
    * Lijst van alle checklists van één gebruiker, voor de UI-selector.
    */
@@ -90,7 +92,7 @@ export class ChecklistRepository {
     });
     return rows.map((row: any) => this.toSummary(row));
   }
- 
+
   /**
    * Eén checklist met ownership-check.
    */
@@ -98,7 +100,7 @@ export class ChecklistRepository {
     const row = await this.prisma.checklist.findFirst({ where: { id, userId } });
     return row ? this.toSummary(row) : null;
   }
- 
+
   /**
    * Alle items in een checklist+sheet die voor het opgegeven type rechtspersoon
    * gelden.
@@ -117,15 +119,26 @@ export class ChecklistRepository {
           ? { appliesMidden: true }
           : { appliesKlein: true }),
     };
- 
+
     const rows = await this.prisma.checklistItem.findMany({
       where,
       orderBy: { ordering: 'asc' },
     });
- 
-    return rows.map((r: { id: string; appliesKlein: boolean; appliesMidden: boolean; appliesGroot: boolean; sheet: string; ordering: number; description: string; source: string | null; }) => this.itemToDomain(r));
+
+    return rows.map(
+      (r: {
+        id: string;
+        appliesKlein: boolean;
+        appliesMidden: boolean;
+        appliesGroot: boolean;
+        sheet: string;
+        ordering: number;
+        description: string;
+        source: string | null;
+      }) => this.itemToDomain(r),
+    );
   }
- 
+
   private toSummary(row: ChecklistRow): ChecklistSummary {
     let sheets: SheetSummary[] = [];
     try {
@@ -144,7 +157,7 @@ export class ChecklistRepository {
     } catch {
       sheets = [];
     }
- 
+
     return {
       id: row.id,
       name: row.name,
@@ -153,7 +166,7 @@ export class ChecklistRepository {
       sheets,
     };
   }
- 
+
   private itemToDomain(row: {
     id: string;
     sheet: string;
@@ -178,4 +191,3 @@ export class ChecklistRepository {
     });
   }
 }
- 
